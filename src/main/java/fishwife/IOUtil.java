@@ -16,10 +16,7 @@
 
 package fishwife;
 
-import static org.jruby.exceptions.RaiseException.createNativeRaiseException;
-
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,8 +28,8 @@ import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.anno.JRubyClass;
 import org.jruby.anno.JRubyMethod;
-import org.jruby.javasupport.util.RuntimeHelpers;
-import org.jruby.runtime.Arity;
+import org.jruby.runtime.Helpers;
+import org.jruby.runtime.Signature;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.BlockCallback;
 import org.jruby.runtime.CallBlock;
@@ -75,11 +72,8 @@ public class IOUtil
                 if( in != null ) in.close();
             }
         }
-        catch( FileNotFoundException x ) {
-            throw createNativeRaiseException( tc.getRuntime(), x );
-        }
         catch( IOException x ) {
-            throw createNativeRaiseException( tc.getRuntime(), x );
+            throw tc.runtime.newIOErrorFromException(x);
         }
     }
 
@@ -112,10 +106,10 @@ public class IOUtil
     {
         OutputStream ostream = (OutputStream) out.toJava( OutputStream.class );
 
-        RuntimeHelpers.invoke( tc, body, "each",
+        Helpers.invoke( tc, body, "each",
            CallBlock.newCallClosure( klazz,
                                      tc.getRuntime().getEnumerable(),
-                                     Arity.ONE_ARGUMENT,
+                                     Signature.ONE_ARGUMENT,
                                      new AppendBlockCallback( tc.getRuntime(),
                                                               ostream ),
                                                               tc ) );
@@ -130,7 +124,7 @@ public class IOUtil
           out.write( blist.unsafeBytes(), blist.begin(), blist.length() );
       }
       catch( IOException x ) {
-          throw createNativeRaiseException( str.getRuntime(), x );
+          throw str.getRuntime().newIOErrorFromException(x);
       }
     }
 
@@ -201,7 +195,7 @@ public class IOUtil
             return runtime.getNil();
         }
         catch( IOException x ) {
-            throw createNativeRaiseException( runtime, x );
+            throw tc.runtime.newIOErrorFromException(x);
         }
     }
 
